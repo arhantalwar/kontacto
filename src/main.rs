@@ -85,47 +85,19 @@ impl Node {
 
     fn get_node_kind(digit: u8) -> Kind {
 
-        if digit == 0 {
-            return Kind::Zero;
+        match digit {
+            0 => Kind::Zero,
+            1 => Kind::One,
+            2 => Kind::Two,
+            3 => Kind::Three,
+            4 => Kind::Four,
+            5 => Kind::Five,
+            6 => Kind::Six,
+            7 => Kind::Seven,
+            8 => Kind::Eight,
+            9 => Kind::Nine,
+            _ => Kind::Root
         }
-
-        if digit == 1 {
-            return Kind::One;
-        }
-
-        if digit == 2 {
-            return Kind::Two;
-        }
-
-        if digit == 3 {
-            return Kind::Three;
-        }
-
-        if digit == 4 {
-            return Kind::Four;
-        }
-
-        if digit == 5 {
-            return Kind::Five;
-        }
-
-        if digit == 6 {
-            return Kind::Six;
-        }
-
-        if digit == 7 {
-            return Kind::Seven;
-        }
-
-        if digit == 8 {
-            return Kind::Eight;
-        }
-
-        if digit == 9 {
-            return Kind::Nine;
-        }
-
-        return Kind::Root;
 
     }
 
@@ -167,7 +139,7 @@ fn main() {
 
     let mut parent_node = l0.clone();
 
-    let contact_num = "912234343";
+    let contact_num = "1112";
     let buffer = contact_num.chars().map(|x| x.to_digit(10).unwrap()).collect::<Vec<u32>>();
 
     let mut handle_check: Result<(bool, usize), u8>;
@@ -234,5 +206,6 @@ fn main() {
     }
 
     println!("{:#?}", l0);
+
 
 }
