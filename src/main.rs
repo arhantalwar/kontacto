@@ -1,4 +1,4 @@
-use std::{cell::RefCell, fmt::Debug, ops::Deref, rc::Rc};
+use std::{cell::RefCell, fmt::Debug, fs::read_to_string, ops::Deref, rc::Rc};
 
 #[derive(Clone)]
 struct Node {
@@ -31,7 +31,6 @@ impl Debug for Node {
             .field("count\n", &self.count)
             .field("has\n", &self.has)
             .finish()
-
 
     }
 
@@ -224,12 +223,15 @@ fn main() {
 
     let root_node = Node::root();
 
-    let contact_dict = vec!["1212", "1234", "2233", "2222", "3333"];
+    let file = read_to_string("/home/arhant/Sandbox/rusty/kontacto/src/contacts").unwrap();
+
+    let mut contact_dict = file.split("\n").collect::<Vec<&str>>();
+    contact_dict.pop();
 
     for contact_num in contact_dict {
         Node::add_contact(contact_num, root_node.clone());
     }
 
-    println!("{:#?}", root_node);
+    // println!("{:#?}", root_node);
 
 }
