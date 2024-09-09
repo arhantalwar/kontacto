@@ -1,6 +1,6 @@
-use std::{cell::RefCell, ops::Deref, rc::Rc};
+use std::{cell::RefCell, fmt::Debug, ops::Deref, rc::Rc};
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct Node {
     kind: Kind,
     count: u32,
@@ -20,6 +20,21 @@ enum Kind {
     Seven,
     Eight,
     Nine,
+}
+
+impl Debug for Node {
+
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+
+        f.debug_struct("")
+            .field("kind\n", &self.kind)
+            .field("count\n", &self.count)
+            .field("has\n", &self.has)
+            .finish()
+
+
+    }
+
 }
 
 impl Node {
@@ -128,84 +143,93 @@ impl Node {
 
     }
 
-}
+    fn add_contact(contact_num: &str, root_node: Rc<RefCell<Node>>) {
 
-fn main() {
+        // l0 (level-0) reference count is incremented so that when updating the parent_node,
+        // root node wont go out of scope
 
-    let l0 = Node::root();
+        let mut parent_node = root_node.clone();
 
-    // l0 (level-0) reference count is incremented so that when updating the parent_node,
-    // root node wont go out of scope
+        let contact_num = contact_num;
+        let buffer = contact_num.chars().map(|x| x.to_digit(10).unwrap()).collect::<Vec<u32>>();
 
-    let mut parent_node = l0.clone();
+        let mut handle_check: Result<(bool, usize), u8>;
 
-    let contact_num = "1112";
-    let buffer = contact_num.chars().map(|x| x.to_digit(10).unwrap()).collect::<Vec<u32>>();
+        for handle in buffer {
 
-    let mut handle_check: Result<(bool, usize), u8>;
+            // handle is digit
+            // Check if the handle is present in "has" Vec
 
-    for handle in buffer {
+            handle_check = Node::check_has(&parent_node, handle as u8);
 
-        // handle is digit
-        // Check if the handle is present in "has" Vec
+            match handle_check {
 
-        handle_check = Node::check_has(&parent_node, handle as u8);
+                // If present
+                Ok((_, index)) => {
 
-        match handle_check {
+                    // -> update the parent_node with the has node
 
-            // If present
-            Ok((_, index)) => {
+                    let old_parent_node = parent_node.clone();
+                    parent_node = old_parent_node
+                        .deref()
+                        .borrow()
+                        .has
+                        .deref()
+                        .borrow()
+                        .get(index)
+                        .unwrap()
+                        .clone();
 
-                // -> update the parent_node with the has node
+                    // -> Inc parent_node count
 
-                let old_parent_node = parent_node.clone();
-                parent_node = old_parent_node
-                    .deref()
-                    .borrow()
-                    .has
-                    .deref()
-                    .borrow()
-                    .get(index)
-                    .unwrap()
-                    .clone();
+                    parent_node.borrow_mut().count += 1;
 
-                // -> Inc parent_node count
+                }
 
-                parent_node.borrow_mut().count += 1;
+                // If absent 
+                Err(handle) => {
 
-            }
+                    // -> create new child_node 
+                    let node_kind = Node::get_node_kind(handle);
+                    let child_node = Node::new(node_kind);
 
-            // If absent 
-            Err(handle) => {
+                    // -> add the new child_node to the has
 
-                // -> create new child_node 
-                let node_kind = Node::get_node_kind(handle);
-                let child_node = Node::new(node_kind);
+                    parent_node.deref()
+                        .borrow()
+                        .has
+                        .deref()
+                        .borrow_mut()
+                        .push(child_node.clone());
 
-                // -> add the new child_node to the has
+                    // -> update the parent_node with the child_node
 
-                parent_node.deref()
-                    .borrow()
-                    .has
-                    .deref()
-                    .borrow_mut()
-                    .push(child_node.clone());
-                
-                // -> update the parent_node with the child_node
+                    parent_node = child_node;
 
-                parent_node = child_node;
+                    // -> Inc parent_node count
 
-                // -> Inc parent_node count
+                    parent_node.borrow_mut().count += 1;
 
-                parent_node.borrow_mut().count += 1;
+                }
 
             }
-            
+
         }
 
     }
 
-    println!("{:#?}", l0);
+}
 
+fn main() {
+
+    let root_node = Node::root();
+
+    let contact_dict = vec!["1212", "1234", "2233", "2222", "3333"];
+
+    for contact_num in contact_dict {
+        Node::add_contact(contact_num, root_node.clone());
+    }
+
+    println!("{:#?}", root_node);
 
 }
